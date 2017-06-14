@@ -2,7 +2,6 @@ package dna
 
 import (
 	"DNA/client"
-	"DNA/common"
 	. "DNA/common"
 	"DNA/core/asset"
 	"DNA/core/contract"
@@ -136,7 +135,7 @@ func (this *Dna) GetBlockCount() (uint32, error) {
 }
 
 func (this *Dna) NewAssetRegisterTransaction(asset *asset.Asset,
-	amount common.Fixed64,
+	amount Fixed64,
 	issuer,
 	controllerAccount *client.Account) (*transaction.Transaction, error) {
 	controller, err := contract.CreateSignatureContract(controllerAccount.PubKey())
@@ -229,7 +228,7 @@ func (this *Dna) SignTransaction(signer *client.Account, tx *transaction.Transac
 	return nil
 }
 
-func (this *Dna) GetTransactionProgramHashes(tx *transaction.Transaction) ([]common.Uint160, error) {
+func (this *Dna) GetTransactionProgramHashes(tx *transaction.Transaction) ([]Uint160, error) {
 	hashs := []Uint160{}
 	uniqHashes := []Uint160{}
 	// add inputUTXO's transaction
@@ -297,8 +296,8 @@ func (this *Dna) GetTransactionProgramHashes(tx *transaction.Transaction) ([]com
 	return uniqHashes, nil
 }
 
-func (this *Dna) NewContractContext(data signature.SignableData, programHashes ...[]common.Uint160) (*contract.ContractContext, error) {
-	var proHashes []common.Uint160
+func (this *Dna) NewContractContext(data signature.SignableData, programHashes ...[]Uint160) (*contract.ContractContext, error) {
+	var proHashes []Uint160
 	var err error
 	if len(programHashes) > 0 {
 		proHashes = programHashes[0]
@@ -335,7 +334,7 @@ func (this *Dna) GetTransaction(txHash Uint256) (*transaction.Transaction, error
 	return tx, nil
 }
 
-func (this *Dna) GetUnspendOutput(assetHash common.Uint256, programHash common.Uint160) ([]*UnspendUTXO, error) {
+func (this *Dna) GetUnspendOutput(assetHash Uint256, programHash Uint160) ([]*UnspendUTXO, error) {
 	data, err := this.sendRpcRequest(DNA_RPC_GETUNSPENDOUTPUT, []interface{}{Uint160ToString(programHash), Uint256ToString(assetHash)})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
@@ -411,18 +410,18 @@ func (this *Dna) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint3
 	return ok, nil
 }
 
-func (this *Dna) MakeAssetAmount(rawAmont float64, precision byte) common.Fixed64 {
-	return common.Fixed64(rawAmont * math.Pow(10, 8-float64(precision)))
+func (this *Dna) MakeAssetAmount(rawAmont float64, precision byte) Fixed64 {
+	return Fixed64(rawAmont * math.Pow(10, 8-float64(precision)))
 }
 
-func (this *Dna) GetRawAssetAmount(assetAmount common.Fixed64, precision byte) float64 {
+func (this *Dna) GetRawAssetAmount(assetAmount Fixed64, precision byte) float64 {
 	return float64(assetAmount) / math.Pow(10, 8-float64(precision))
 }
 
-func (this *Dna) GetAccountProgramHash(account *client.Account) (common.Uint160, error) {
+func (this *Dna) GetAccountProgramHash(account *client.Account) (Uint160, error) {
 	ctr, err := contract.CreateSignatureContract(account.PubKey())
 	if err != nil {
-		return common.Uint160{}, fmt.Errorf("CreateSignatureContract error:%s", err)
+		return Uint160{}, fmt.Errorf("CreateSignatureContract error:%s", err)
 	}
 	return ctr.ProgramHash, nil
 }
