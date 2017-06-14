@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -408,6 +409,14 @@ func (this *Dna) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint3
 		}
 	}
 	return ok, nil
+}
+
+func (this *Dna) MakeAssetAmount(rawAmont float64, precision byte) common.Fixed64 {
+	return common.Fixed64(rawAmont * math.Pow(10, 8-float64(precision)))
+}
+
+func (this *Dna) GetRawAssetAmount(assetAmount common.Fixed64, precision byte) float64 {
+	return float64(assetAmount) / math.Pow(10, 8-float64(precision))
 }
 
 func (this *Dna) GetAccountProgramHash(account *client.Account) (common.Uint160, error) {

@@ -23,16 +23,28 @@ type DNAJsonRpcRes struct {
 	Result  json.RawMessage `json:"result"`
 }
 
+const (
+	DnaRpcInvalidHash        = "invalid hash"
+	DnaRpcInvalidBlock       = "invalid block"
+	DnaRpcInvalidTransaction = "invalid transaction"
+	DnaRpcInvalidParameter   = "invalid parameter"
+	DnaRpcUnknownBlock       = "unknown block"
+	DnaRpcUnknownTransaction = "unknown transaction"
+	DnaRpcNil                = "null"
+	DnaRpcUnsupported        = "Unsupported"
+	DnaRpcInternalError      = "internal error"
+)
+
 var DNARpcError map[string]string = map[string]string{
-	"invalid hash":        "",
-	"invalid block":       "",
-	"invalid transaction": "",
-	"invalid parameter":   "",
-	"unknown block":       "",
-	"unknown transaction": "",
-	"Unsupported":         "",
-	"internal error":      "",
-	"null":                "",
+	DnaRpcInvalidHash:        "",
+	DnaRpcInvalidBlock:       "",
+	DnaRpcInvalidTransaction: "",
+	DnaRpcInvalidParameter:   "",
+	DnaRpcUnknownBlock:       "",
+	DnaRpcUnknownTransaction: "",
+	DnaRpcUnsupported:        "",
+	DnaRpcInternalError:      "",
+	DnaRpcNil:                "",
 }
 
 func (this *DNAJsonRpcRes) HandleResult() ([]byte, error) {

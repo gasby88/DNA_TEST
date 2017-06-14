@@ -15,7 +15,7 @@ func TestRegisterAssetTransaction(ctx *TestFrameworkContext) bool {
 	assetType := Token
 	recordType := UTXO
 	asset := ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
-	assetAmount := common.Fixed64(20000)
+	assetAmount := ctx.Dna.MakeAssetAmount(20000, assetPrecise)
 	if !testRegisterAssetTransaction(asset, assetAmount, ctx) {
 		ctx.LogError("TestRegisterAssetTransaction Asset:%+v Amount:%v test failed.")
 		return false
@@ -26,12 +26,99 @@ func TestRegisterAssetTransaction(ctx *TestFrameworkContext) bool {
 	assetType = Share
 	recordType = UTXO
 	asset = ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
-	assetAmount = common.Fixed64(100000)
+	assetAmount = ctx.Dna.MakeAssetAmount(100000, assetPrecise)
 	if !testRegisterAssetTransaction(asset, assetAmount, ctx) {
 		ctx.LogError("TestRegisterAssetTransaction Asset:%+v Amount:%v test failed.")
 		return false
 	}
 
+	return true
+}
+
+func TestRegisterAssetNegAmountTrasaction(ctx *TestFrameworkContext) bool {
+	assetName := "TS01"
+	assetPrecise := byte(4)
+	assetType := Token
+	recordType := UTXO
+	asset := ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
+	assetAmount := ctx.Dna.MakeAssetAmount(-1, assetPrecise)
+
+	regTx, err := ctx.Dna.NewAssetRegisterTransaction(asset, assetAmount, ctx.DnaClient.Admin, ctx.DnaClient.Admin)
+	if err != nil {
+		ctx.LogError("NewAssetRegisterTransaction Asset:%+v Amount:%v Admin:%+v Account:%+v error:%s",
+			asset,
+			assetAmount,
+			ctx.DnaClient.Admin,
+			ctx.DnaClient.Admin,
+			err)
+
+		ctx.FailNow()
+		return false
+	}
+
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, regTx)
+	if err == nil || err.Error() != DnaRpcInternalError {
+		ctx.LogError("SendTransaction AssetRegisterTransaction should failed")
+		return false
+	}
+	return true
+}
+
+func TestRegisterAssetPreciseTransaction(ctx *TestFrameworkContext) bool{
+	assetName := "TS01"
+	assetPrecise := byte(4)
+	assetType := Token
+	recordType := UTXO
+	asset := ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
+	assetAmount := ctx.Dna.MakeAssetAmount(100.00001, assetPrecise)
+
+	regTx, err := ctx.Dna.NewAssetRegisterTransaction(asset, assetAmount, ctx.DnaClient.Admin, ctx.DnaClient.Admin)
+	if err != nil {
+		ctx.LogError("NewAssetRegisterTransaction Asset:%+v Amount:%v Admin:%+v Account:%+v error:%s",
+			asset,
+			assetAmount,
+			ctx.DnaClient.Admin,
+			ctx.DnaClient.Admin,
+			err)
+
+		ctx.FailNow()
+		return false
+	}
+
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, regTx)
+	if err == nil || err.Error() != DnaRpcInternalError {
+		ctx.LogError("SendTransaction AssetRegisterTransaction should failed")
+		return false
+	}
+	return true
+}
+
+func TestRegisterAssetMaxPreciseTransaction(ctx *TestFrameworkContext)bool{
+	assetName := "TS01"
+	assetPrecise := byte(9)
+	assetType := Token
+	recordType := UTXO
+	asset := ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
+	assetAmount := ctx.Dna.MakeAssetAmount(10000, assetPrecise)
+
+	regTx, err := ctx.Dna.NewAssetRegisterTransaction(asset, assetAmount, ctx.DnaClient.Admin, ctx.DnaClient.Admin)
+	if err != nil {
+		ctx.LogError("NewAssetRegisterTransaction Asset:%+v Amount:%v Admin:%+v Account:%+v error:%s",
+			asset,
+			assetAmount,
+			ctx.DnaClient.Admin,
+			ctx.DnaClient.Admin,
+			err)
+		return false
+	}
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, regTx)
+	if err == nil || err.Error() != DnaRpcInternalError {
+		ctx.LogError("SendTransaction AssetRegisterTransaction should failed")
+		return false
+	}
 	return true
 }
 
@@ -78,6 +165,7 @@ func testRegisterAssetTransaction(asset *Asset, assetAmount common.Fixed64, ctx 
 
 	if !ctx.DnaAsset.RegAsset(txHash, asset) {
 		ctx.LogError("Asset name:%s has already register", asset.Name)
+		return false
 	}
 	return true
 }

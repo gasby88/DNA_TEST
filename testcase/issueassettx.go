@@ -4,6 +4,7 @@ import (
 	"DNA/common"
 	"DNA/core/transaction"
 	"DNA_TEST/testframework"
+	."DNA_TEST/dna"
 	"fmt"
 	"time"
 )
@@ -17,13 +18,14 @@ func TestIssueAssetTransaction(ctx *testframework.TestFrameworkContext) bool {
 		ctx.FailNow()
 		return false
 	}
+	asset := ctx.DnaAsset.GetAssetByName(assetName)
 	programHash, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
 	if err != nil {
 		ctx.LogError("GetProgramHash error:%s", err)
 		return false
 	}
 	output := &transaction.TxOutput{
-		Value:       common.Fixed64(100),
+		Value:       ctx.Dna.MakeAssetAmount(100, asset.Precision),
 		AssetID:     assetId,
 		ProgramHash: programHash,
 	}
@@ -73,6 +75,7 @@ func TestIssueAssetMutiTransaction(ctx *testframework.TestFrameworkContext) bool
 		ctx.FailNow()
 		return false
 	}
+	asset1 := ctx.DnaAsset.GetAssetByName(assetName1)
 	assetName2 := "TS02"
 	assetId2 := ctx.DnaAsset.GetAssetId(assetName2)
 	if assetId1 == empty {
@@ -80,6 +83,7 @@ func TestIssueAssetMutiTransaction(ctx *testframework.TestFrameworkContext) bool
 		ctx.FailNow()
 		return false
 	}
+	asset2 := ctx.DnaAsset.GetAssetByName(assetName2)
 	programHash1, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
 	if err != nil {
 		ctx.LogError("GetProgramHash error:%s", err)
@@ -91,17 +95,17 @@ func TestIssueAssetMutiTransaction(ctx *testframework.TestFrameworkContext) bool
 		return false
 	}
 	txOutput1 := &transaction.TxOutput{
-		Value:       common.Fixed64(100),
+		Value:       ctx.Dna.MakeAssetAmount(100, asset1.Precision),
 		AssetID:     assetId1,
 		ProgramHash: programHash1,
 	}
 	txOutput2 := &transaction.TxOutput{
-		Value:       common.Fixed64(100),
+		Value:       ctx.Dna.MakeAssetAmount(100, asset2.Precision),
 		AssetID:     assetId2,
 		ProgramHash: programHash2,
 	}
 	txOutput3 := &transaction.TxOutput{
-		Value:       common.Fixed64(100),
+		Value:       ctx.Dna.MakeAssetAmount(100, asset2.Precision),
 		AssetID:     assetId2,
 		ProgramHash: programHash1,
 	}
@@ -151,13 +155,14 @@ func TestIssueAssetOverAmountTransaction(ctx *testframework.TestFrameworkContext
 		ctx.FailNow()
 		return false
 	}
+	asset := ctx.DnaAsset.GetAssetByName(assetName)
 	programHash, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
 	if err != nil {
 		ctx.LogError("GetProgramHash error:%s", err)
 		return false
 	}
 	output := &transaction.TxOutput{
-		Value:       common.Fixed64(1000000000),
+		Value:       ctx.Dna.MakeAssetAmount(1000000000000000, asset.Precision),
 		AssetID:     assetId,
 		ProgramHash: programHash,
 	}
@@ -167,11 +172,86 @@ func TestIssueAssetOverAmountTransaction(ctx *testframework.TestFrameworkContext
 		ctx.LogError("NewIssueAssetTransaction error:%s", err)
 		return false
 	}
-	txHash, err := ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
-	if err != nil {
-		ctx.LogError("SendTransaction error:%s", err)
+
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
+	if err == nil || err.Error() != DnaRpcInternalError  {
+		ctx.LogError("SendTransaction should failed.")
 		return false
 	}
+	return true
+}
+
+func TestIssueAssetNegAmountTransaction(ctx *testframework.TestFrameworkContext)bool{
+	assetName := "TS01"
+	assetId := ctx.DnaAsset.GetAssetId(assetName)
+	empty := common.Uint256{}
+	if assetId == empty {
+		ctx.LogError("AssetName:%s doesnot exist",assetName)
+		ctx.FailNow()
+		return false
+	}
+	asset := ctx.DnaAsset.GetAssetByName(assetName)
+	programHash, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
+	if err != nil {
+		ctx.LogError("GetProgramHash error:%s", err)
+		return false
+	}
+	output := &transaction.TxOutput{
+		Value:       ctx.Dna.MakeAssetAmount(-1, asset.Precision),
+		AssetID:     assetId,
+		ProgramHash: programHash,
+	}
+	txOutputs := []*transaction.TxOutput{output}
+	issueTx, err := ctx.Dna.NewIssueAssetTransaction(txOutputs)
+	if err != nil {
+		ctx.LogError("NewIssueAssetTransaction error:%s", err)
+		return false
+	}
+
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
+	if err == nil || err.Error() != DnaRpcInternalError  {
+		ctx.LogError("SendTransaction error should failed.")
+		return false
+	}
+	return true
+}
+
+func TestIssueAssetPreciseTransaction(ctx *testframework.TestFrameworkContext)bool{
+	assetName := "TS01"
+	assetId := ctx.DnaAsset.GetAssetId(assetName)
+	empty := common.Uint256{}
+	if assetId == empty {
+		ctx.LogError("AssetName:%s doesnot exist",assetName)
+		ctx.FailNow()
+		return false
+	}
+	asset := ctx.DnaAsset.GetAssetByName(assetName)
+	programHash, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
+	if err != nil {
+		ctx.LogError("GetProgramHash error:%s", err)
+		return false
+	}
+	output := &transaction.TxOutput{
+		Value:       ctx.Dna.MakeAssetAmount(100.00001, asset.Precision),
+		AssetID:     assetId,
+		ProgramHash: programHash,
+	}
+	txOutputs := []*transaction.TxOutput{output}
+	issueTx, err := ctx.Dna.NewIssueAssetTransaction(txOutputs)
+	if err != nil {
+		ctx.LogError("NewIssueAssetTransaction error:%s", err)
+		return false
+	}
+
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
+	if err == nil || err.Error() != DnaRpcInternalError  {
+		ctx.LogError("SendTransaction error.Transaction shuld be rejected")
+		return false
+	}
+	return true
 }
 
 func checkIssueAssetTxResult(txOutputs, txOutputsRes []*transaction.TxOutput) (bool, error) {

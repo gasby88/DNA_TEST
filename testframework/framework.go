@@ -90,17 +90,33 @@ func (this *TestFramework) onTestFinish() {
 			failedList = append(failedList, this.getTestCaseName(testCase))
 		}
 	}
-	log4.Info("\t\t\t===============================================================")
-	log4.Info("\t\t\tDNA Test Finish Total:%v Success:%v Failed:%v TimeCost:%.2f s.",
+
+	skipList := make([]string, 0)
+	for _, testCase := range  this.testCases {
+		_, ok := this.testCaseRes[this.getTestCaseId(testCase)]
+		if !ok {
+			skipList = append(skipList, this.getTestCaseName(testCase))
+		}
+	}
+	log4.Info("\t\t===============================================================")
+	log4.Info("\t\tDNA Test Finish Total:%v Success:%v Failed:%v Skip:%v TimeCost:%.2f s.",
 		len(this.testCases),
 		succCount,
 		failedCount,
+		len(this.testCases) - succCount - failedCount,
 		time.Now().Sub(this.startTime).Seconds())
 
 	if failedCount > 0 {
-		log4.Info("\t\t\tFail list:")
 		log4.Info("\t\t---------------------------------------------------------------")
+		log4.Info("\t\t\tFail list:")
 		for i, failCase := range failedList {
+			log4.Info("\t\t\t%d.\t%s", i+1, failCase)
+		}
+	}
+	if len(skipList) > 0 {
+		log4.Info("\t\t---------------------------------------------------------------")
+		log4.Info("\t\t\tSkip list:")
+		for i, failCase := range skipList {
 			log4.Info("\t\t\t%d.\t%s", i+1, failCase)
 		}
 	}
