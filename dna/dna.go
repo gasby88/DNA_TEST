@@ -1,7 +1,7 @@
 package dna
 
 import (
-	"DNA/client"
+	"DNA/account"
 	. "DNA/common"
 	"DNA/core/asset"
 	"DNA/core/contract"
@@ -80,7 +80,7 @@ func (this *Dna) GetBlockByHash(hash Uint256) (*ledger.Block, error) {
 	return block, nil
 }
 
-func (this *Dna) GetBlockByHeight(address string, height uint32) (*ledger.Block, error) {
+func (this *Dna) GetBlockByHeight(height uint32) (*ledger.Block, error) {
 	data, err := this.sendRpcRequest(DNA_RPC_GETBLOCK, []interface{}{height})
 	if err != nil {
 		return nil, fmt.Errorf("sendRpcRequest error:%s", err)
@@ -137,7 +137,7 @@ func (this *Dna) GetBlockCount() (uint32, error) {
 func (this *Dna) NewAssetRegisterTransaction(asset *asset.Asset,
 	amount Fixed64,
 	issuer,
-	controllerAccount *client.Account) (*transaction.Transaction, error) {
+	controllerAccount *account.Account) (*transaction.Transaction, error) {
 	controller, err := contract.CreateSignatureContract(controllerAccount.PubKey())
 	if err != nil {
 		return nil, fmt.Errorf("CreateSignatureContract error:%s", err)
@@ -179,7 +179,7 @@ func (this *Dna) NewRecordTransaction(recordType string, recordData []byte) (*tr
 	return tx, nil
 }
 
-func (this *Dna) SendTransaction(account *client.Account, tx *transaction.Transaction) (Uint256, error) {
+func (this *Dna) SendTransaction(account *account.Account, tx *transaction.Transaction) (Uint256, error) {
 	err := this.SignTransaction(account, tx)
 	if err != nil {
 		return Uint256{}, fmt.Errorf("SignTransaction error:%s", err)
@@ -203,7 +203,7 @@ func (this *Dna) SendTransaction(account *client.Account, tx *transaction.Transa
 	return hash, nil
 }
 
-func (this *Dna) SignTransaction(signer *client.Account, tx *transaction.Transaction) error {
+func (this *Dna) SignTransaction(signer *account.Account, tx *transaction.Transaction) error {
 	signature, err := signature.SignBySigner(tx, signer)
 	if err != nil {
 		return fmt.Errorf("SignBySigner error:%s", err)
@@ -244,7 +244,7 @@ func (this *Dna) GetTransactionProgramHashes(tx *transaction.Transaction) ([]Uin
 		if attribute.Usage != transaction.Script {
 			continue
 		}
-		dataHash, err := Uint160ParseFromBytes(attribute.Date)
+		dataHash, err := Uint160ParseFromBytes(attribute.Data)
 		if err != nil {
 			return nil, fmt.Errorf("Uint160ParseFromBytes error:%s", err)
 		}
@@ -418,7 +418,7 @@ func (this *Dna) GetRawAssetAmount(assetAmount Fixed64, precision byte) float64 
 	return float64(assetAmount) / math.Pow(10, 8-float64(precision))
 }
 
-func (this *Dna) GetAccountProgramHash(account *client.Account) (Uint160, error) {
+func (this *Dna) GetAccountProgramHash(account *account.Account) (Uint160, error) {
 	ctr, err := contract.CreateSignatureContract(account.PubKey())
 	if err != nil {
 		return Uint160{}, fmt.Errorf("CreateSignatureContract error:%s", err)

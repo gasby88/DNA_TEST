@@ -14,7 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"os"
+	//"os"
 )
 
 func ParseTransaction(txStr *Transactions) (*transaction.Transaction, error) {
@@ -164,7 +164,7 @@ func ParseTransactionAttributes(attr *TxAttributeInfo) (*transaction.TxAttribute
 	txAttr := &transaction.TxAttribute{}
 	txAttr.Size = attr.Size
 	txAttr.Usage = transaction.TransactionAttributeUsage(attr.Usage)
-	txAttr.Date = data
+	txAttr.Data = data
 	return txAttr, nil
 }
 
@@ -372,10 +372,10 @@ func Uint160ToString(value common.Uint160) string {
 	return hex.EncodeToString(value.ToArray())
 }
 
-func FileExisted(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil || os.IsExist(err)
-}
+//func FileExisted(filename string) bool {
+//	_, err := os.Stat(filename)
+//	return err == nil || os.IsExist(err)
+//}
 
 func AssetEqualTo(as1, as2 *asset.Asset) bool {
 	if as1 == nil && as2 == nil {

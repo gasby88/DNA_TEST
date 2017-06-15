@@ -1,18 +1,19 @@
 package dna
 
 import (
-	"DNA/client"
+	"DNA/account"
+	"DNA/common"
 	"fmt"
 )
 
 type DnaClient struct {
-	Client   client.Client
-	Admin    *client.Account
-	Account1 *client.Account
-	Account2 *client.Account
-	Account3 *client.Account
-	Account4 *client.Account
-	Account5 *client.Account
+	Client   account.Client
+	Admin    *account.Account
+	Account1 *account.Account
+	Account2 *account.Account
+	Account3 *account.Account
+	Account4 *account.Account
+	Account5 *account.Account
 }
 
 func NewDnaClient() *DnaClient {
@@ -50,11 +51,11 @@ func (this *DnaClient)Init(){
 	}
 }
 
-func (this *DnaClient) CreateClient(name string) *client.ClientImpl {
+func (this *DnaClient) CreateClient(name string) *account.ClientImpl {
 	path := fmt.Sprintf("./wallet_%s.txt", name)
-	if FileExisted(path) {
-		return client.OpenClient(path, []byte("dna"))
+	if common.FileExisted(path) {
+		return account.Open(path, []byte("dna"))
 	} else {
-		return client.CreateClient(path, []byte("dna"))
+		return account.Create(path, []byte("dna"))
 	}
 }

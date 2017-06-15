@@ -427,7 +427,6 @@ func TestTransferPreciseTransaction(ctx *TestFrameworkContext) bool {
 	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Account1, transferTx)
 	if err == nil || err.Error() != dna.DnaRpcInternalError {
 		ctx.LogError("SendTransaction should failed")
-		ctx.FailNow()
 		return false
 	}
 	return true

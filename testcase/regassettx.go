@@ -17,7 +17,9 @@ func TestRegisterAssetTransaction(ctx *TestFrameworkContext) bool {
 	asset := ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
 	assetAmount := ctx.Dna.MakeAssetAmount(20000, assetPrecise)
 	if !testRegisterAssetTransaction(asset, assetAmount, ctx) {
-		ctx.LogError("TestRegisterAssetTransaction Asset:%+v Amount:%v test failed.")
+		ctx.LogError("TestRegisterAssetTransaction Asset:%+v Amount:%v test failed.",
+			asset, assetAmount)
+		ctx.FailNow()
 		return false
 	}
 
@@ -28,7 +30,9 @@ func TestRegisterAssetTransaction(ctx *TestFrameworkContext) bool {
 	asset = ctx.Dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
 	assetAmount = ctx.Dna.MakeAssetAmount(100000, assetPrecise)
 	if !testRegisterAssetTransaction(asset, assetAmount, ctx) {
-		ctx.LogError("TestRegisterAssetTransaction Asset:%+v Amount:%v test failed.")
+		ctx.LogError("TestRegisterAssetTransaction Asset:%+v Amount:%v test failed.",
+		asset, assetAmount)
+		ctx.FailNow()
 		return false
 	}
 
@@ -65,7 +69,7 @@ func TestRegisterAssetNegAmountTrasaction(ctx *TestFrameworkContext) bool {
 	return true
 }
 
-func TestRegisterAssetPreciseTransaction(ctx *TestFrameworkContext) bool{
+func TestRegisterAssetPreciseTransaction(ctx *TestFrameworkContext) bool {
 	assetName := "TS01"
 	assetPrecise := byte(4)
 	assetType := Token
@@ -95,7 +99,7 @@ func TestRegisterAssetPreciseTransaction(ctx *TestFrameworkContext) bool{
 	return true
 }
 
-func TestRegisterAssetMaxPreciseTransaction(ctx *TestFrameworkContext)bool{
+func TestRegisterAssetMaxPreciseTransaction(ctx *TestFrameworkContext) bool {
 	assetName := "TS01"
 	assetPrecise := byte(9)
 	assetType := Token

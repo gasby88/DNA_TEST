@@ -4,7 +4,7 @@ import (
 	"DNA/common"
 	"DNA/core/transaction"
 	"DNA_TEST/testframework"
-	."DNA_TEST/dna"
+	"DNA_TEST/dna"
 	"fmt"
 	"time"
 )
@@ -175,7 +175,7 @@ func TestIssueAssetOverAmountTransaction(ctx *testframework.TestFrameworkContext
 
 	//Should failed
 	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
-	if err == nil || err.Error() != DnaRpcInternalError  {
+	if err == nil || err.Error() != dna.DnaRpcInternalError  {
 		ctx.LogError("SendTransaction should failed.")
 		return false
 	}
@@ -211,7 +211,7 @@ func TestIssueAssetNegAmountTransaction(ctx *testframework.TestFrameworkContext)
 
 	//Should failed
 	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
-	if err == nil || err.Error() != DnaRpcInternalError  {
+	if err == nil || err.Error() != dna.DnaRpcInternalError  {
 		ctx.LogError("SendTransaction error should failed.")
 		return false
 	}
@@ -247,7 +247,7 @@ func TestIssueAssetPreciseTransaction(ctx *testframework.TestFrameworkContext)bo
 
 	//Should failed
 	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Admin, issueTx)
-	if err == nil || err.Error() != DnaRpcInternalError  {
+	if err == nil || err.Error() != dna.DnaRpcInternalError  {
 		ctx.LogError("SendTransaction error.Transaction shuld be rejected")
 		return false
 	}

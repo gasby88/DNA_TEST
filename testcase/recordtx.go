@@ -52,8 +52,8 @@ func TestRecordTransactionByTransfer(ctx *TestFrameworkContext) bool {
 		return false
 	}
 	attrs := &transaction.TxAttribute{
-		Usage: transaction.Remark,
-		Date:  recordData,
+		Usage: transaction.Description,
+		Data:  recordData,
 		Size:  uint32(len(recordData)),
 	}
 	recordTx.Attributes = append(recordTx.Attributes, attrs)
@@ -78,7 +78,7 @@ func TestRecordTransactionByTransfer(ctx *TestFrameworkContext) bool {
 
 	recordData2 := []byte("")
 	if len(recordTx2.Attributes) > 0 {
-		recordData2 = recordTx2.Attributes[0].Date
+		recordData2 = recordTx2.Attributes[0].Data
 	}
 
 	if string(recordData) != string(recordData2) {

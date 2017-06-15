@@ -31,4 +31,7 @@ func init() {
 	//Record test
 	TFramework.RegTestCase("TestRecordTransactionByRecord", TestRecordTransactionByRecord)
 	TFramework.RegTestCase("TestRecordTransactionByTransfer", TestRecordTransactionByTransfer)
+
+	//Benchmark
+	//TFramework.RegTestCase("BenchmarkTransaction", BenchmarkTransaction)
 }
