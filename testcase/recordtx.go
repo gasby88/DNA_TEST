@@ -51,6 +51,8 @@ func TestRecordTransactionByTransfer(ctx *TestFrameworkContext) bool {
 		ctx.LogError("NewTransferAssetTransaction error:%s", err)
 		return false
 	}
+
+	attrType := transaction.Nonce
 	attrs := &transaction.TxAttribute{
 		Usage: transaction.Description,
 		Data:  recordData,
@@ -77,8 +79,10 @@ func TestRecordTransactionByTransfer(ctx *TestFrameworkContext) bool {
 	}
 
 	recordData2 := []byte("")
-	if len(recordTx2.Attributes) > 0 {
-		recordData2 = recordTx2.Attributes[0].Data
+	for _, attr := range recordTx2.Attributes{
+		if attr.Usage == attrType{
+			recordData2 = attr.Data
+		}
 	}
 
 	if string(recordData) != string(recordData2) {

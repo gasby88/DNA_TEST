@@ -143,10 +143,10 @@ func (this *Dna) NewAssetRegisterTransaction(asset *asset.Asset,
 		return nil, fmt.Errorf("CreateSignatureContract error:%s", err)
 	}
 	tx, err := transaction.NewRegisterAssetTransaction(asset, amount, issuer.PubKey(), controller.ProgramHash)
-	tx.Nonce = uint64(rand.Int63())
 	if err != nil {
 		return nil, fmt.Errorf("NewRegisterAssetTransaction error:%s", err)
 	}
+	this.setNonce(tx)
 	return tx, nil
 }
 
@@ -155,7 +155,7 @@ func (this *Dna) NewIssueAssetTransaction(txOutputs []*transaction.TxOutput) (*t
 	if err != nil {
 		return nil, fmt.Errorf("NewIssueAssetTransaction error:%s", err)
 	}
-	tx.Nonce = uint64(rand.Int63())
+	this.setNonce(tx)
 	return tx, nil
 }
 
@@ -165,7 +165,7 @@ func (this *Dna) NewTransferAssetTransaction(inputs []*transaction.UTXOTxInput,
 	if err != nil {
 		return nil, fmt.Errorf("NewTransferAssetTransaction error:%s", err)
 	}
-	tx.Nonce = uint64(rand.Int63())
+	this.setNonce(tx)
 	return tx, nil
 }
 
@@ -174,9 +174,13 @@ func (this *Dna) NewRecordTransaction(recordType string, recordData []byte) (*tr
 	if err != nil {
 		return nil, fmt.Errorf("NewRecordTransaction error:%s", err)
 	}
-	tx.Nonce = uint64(123456)
-	tx.Nonce = uint64(rand.Int63())
+	this.setNonce(tx)
 	return tx, nil
+}
+
+func (this *Dna)setNonce(tx *transaction.Transaction){
+	attr := transaction.NewTxAttribute(transaction.Nonce, []byte(fmt.Sprintf("%d",rand.Int63())))
+	tx.Attributes = append(tx.Attributes, &attr)
 }
 
 func (this *Dna) SendTransaction(account *account.Account, tx *transaction.Transaction) (Uint256, error) {

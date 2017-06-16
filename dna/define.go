@@ -68,7 +68,6 @@ type Transactions struct {
 	TxType            transaction.TransactionType
 	PayloadVersion    byte
 	Payload           json.RawMessage
-	Nonce             uint64
 	Attributes        []TxAttributeInfo
 	UTXOInputs        []UTXOTxInputInfo
 	BalanceInputs     []BalanceTxInputInfo

@@ -94,7 +94,6 @@ func ParseTransaction(txStr *Transactions) (*transaction.Transaction, error) {
 	tx := &transaction.Transaction{}
 	tx.TxType = transaction.TransactionType(txStr.TxType)
 	tx.PayloadVersion = txStr.PayloadVersion
-	tx.Nonce = txStr.Nonce
 	tx.Payload = payload
 	tx.AssetOutputAmount = assetOutputAmounts
 	tx.AssetInputAmount = assetInputAmounts
