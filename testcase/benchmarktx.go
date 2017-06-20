@@ -106,7 +106,7 @@ func registAsset(dna *Dna,
 	assetType := Token
 	recordType := UTXO
 	asset = dna.CreateAsset(assetName, assetPrecise, assetType, recordType)
-	assetAmount := dna.MakeAssetAmount(amount, assetPrecise)
+	assetAmount := dna.MakeAssetAmount(amount)
 	regTx, err := dna.NewAssetRegisterTransaction(asset, assetAmount, issuer, controller)
 	if err != nil {
 		return
@@ -142,7 +142,7 @@ func issueAsset(dna *Dna,
 		return fmt.Errorf("GetAccountProgramHash toAccount error:%s", err)
 	}
 	output := &transaction.TxOutput{
-		Value:       dna.MakeAssetAmount(amount, asset.Precision),
+		Value:       dna.MakeAssetAmount(amount),
 		AssetID:     assetId,
 		ProgramHash: programHash,
 	}

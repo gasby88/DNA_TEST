@@ -16,7 +16,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
+	log4 "github.com/alecthomas/log4go"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -178,8 +178,8 @@ func (this *Dna) NewRecordTransaction(recordType string, recordData []byte) (*tr
 	return tx, nil
 }
 
-func (this *Dna)setNonce(tx *transaction.Transaction){
-	attr := transaction.NewTxAttribute(transaction.Nonce, []byte(fmt.Sprintf("%d",rand.Int63())))
+func (this *Dna) setNonce(tx *transaction.Transaction) {
+	attr := transaction.NewTxAttribute(transaction.Nonce, []byte(fmt.Sprintf("%d", rand.Int63())))
 	tx.Attributes = append(tx.Attributes, &attr)
 }
 
@@ -197,7 +197,7 @@ func (this *Dna) SendTransaction(account *account.Account, tx *transaction.Trans
 	txData := hex.EncodeToString(buffer.Bytes())
 	data, err := this.sendRpcRequest(DNA_RPC_SENDTRANSACTION, []interface{}{txData})
 	if err != nil {
-		return Uint256{}, fmt.Errorf("sendRpcRequest error:%s", err)
+		return Uint256{}, err
 	}
 
 	hash, err := ParseUint256FromString(string(data))
@@ -387,11 +387,11 @@ func (this *Dna) GetUnspendOutput(assetHash Uint256, programHash Uint160) ([]*Un
 }
 
 func (this *Dna) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint32) (bool, error) {
-	count := uint32(1)
+	count := uint32(2)
 	if len(blockCount) > 0 && blockCount[0] > 0 {
 		count = blockCount[0]
 	}
-	curBlockHeigh, err := this.GetBlockCount()
+	blockHeight, err := this.GetBlockCount()
 	if err != nil {
 		return false, fmt.Errorf("GetBlockCount error:%s", err)
 	}
@@ -402,7 +402,7 @@ func (this *Dna) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint3
 	ok := false
 	for i := 0; i < secs; i++ {
 		time.Sleep(time.Second)
-		blockHeight, err := this.GetBlockCount()
+		curBlockHeigh, err := this.GetBlockCount()
 		if err != nil {
 			continue
 		}
@@ -414,12 +414,12 @@ func (this *Dna) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint3
 	return ok, nil
 }
 
-func (this *Dna) MakeAssetAmount(rawAmont float64, precision byte) Fixed64 {
-	return Fixed64(rawAmont * math.Pow(10, 8-float64(precision)))
+func (this *Dna) MakeAssetAmount(rawAmont float64) Fixed64 {
+	return Fixed64(rawAmont * 100000000)
 }
 
-func (this *Dna) GetRawAssetAmount(assetAmount Fixed64, precision byte) float64 {
-	return float64(assetAmount) / math.Pow(10, 8-float64(precision))
+func (this *Dna) GetRawAssetAmount(assetAmount Fixed64) float64 {
+	return float64(assetAmount) / 100000000
 }
 
 func (this *Dna) GetAccountProgramHash(account *account.Account) (Uint160, error) {
@@ -461,6 +461,10 @@ func (this *Dna) GetTransactionReference(tx *transaction.Transaction) (map[*tran
 }
 func (this *Dna) sendRpcRequest(method string, params []interface{}) ([]byte, error) {
 	data, err := httpjsonrpc.Call(this.getRpcAddress(), method, this.getQid(), params)
+	if method == DNA_RPC_SENDTRANSACTION {
+		log4.Info("Call:%s params:%+v", method, params)
+		log4.Info("Res:%s", data)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Call %s error:%s", method, err)
 	}
@@ -477,7 +481,7 @@ func (this *Dna) sendRpcRequest(method string, params []interface{}) ([]byte, er
 	}
 	data, err = res.HandleResult()
 	if err != nil {
-		return nil, fmt.Errorf("JsonRpc %s return:%s", method, err)
+		return nil, err
 	}
 	return data, nil
 }

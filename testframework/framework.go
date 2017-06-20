@@ -79,14 +79,13 @@ func (this *TestFramework) onTestStart() {
 }
 
 func (this *TestFramework) onTestFinish() {
-	succCount := 0
-	failedCount := 0
+
 	failedList := make([]string, 0)
+	successList := make([]string, 0)
 	for testCase, ok := range this.testCaseRes {
 		if ok {
-			succCount++
+			successList = append(successList, this.getTestCaseName(testCase))
 		} else {
-			failedCount++
 			failedList = append(failedList, this.getTestCaseName(testCase))
 		}
 	}
@@ -98,6 +97,10 @@ func (this *TestFramework) onTestFinish() {
 			skipList = append(skipList, this.getTestCaseName(testCase))
 		}
 	}
+
+	succCount := len(successList)
+	failedCount := len(failedList)
+
 	log4.Info("\t\t===============================================================")
 	log4.Info("\t\tDNA Test Finish Total:%v Success:%v Failed:%v Skip:%v TimeCost:%.2f s.",
 		len(this.testCases),
@@ -105,7 +108,13 @@ func (this *TestFramework) onTestFinish() {
 		failedCount,
 		len(this.testCases) - succCount - failedCount,
 		time.Now().Sub(this.startTime).Seconds())
-
+	if succCount > 0 {
+		log4.Info("\t\t---------------------------------------------------------------")
+		log4.Info("\t\t\tSuccess list:")
+		for i, succCase := range successList {
+			log4.Info("\t\t\t%d.\t%s", i+1, succCase)
+		}
+	}
 	if failedCount > 0 {
 		log4.Info("\t\t---------------------------------------------------------------")
 		log4.Info("\t\t\tFail list:")
