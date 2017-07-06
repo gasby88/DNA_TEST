@@ -156,12 +156,11 @@ func ParseToPayload(payloadType transaction.TransactionType, data json.RawMessag
 }
 
 func ParseTransactionAttributes(attr *TxAttributeInfo) (*transaction.TxAttribute, error) {
-	data, err := hex.DecodeString(attr.Date)
+	data, err := hex.DecodeString(attr.Data)
 	if err != nil {
-		return nil, fmt.Errorf("hex.DecodeString TxAttributeInfo.Data:%s error:%s", attr.Date, err)
+		return nil, fmt.Errorf("hex.DecodeString TxAttributeInfo.Data:%s error:%s", attr.Data, err)
 	}
 	txAttr := &transaction.TxAttribute{}
-	txAttr.Size = attr.Size
 	txAttr.Usage = transaction.TransactionAttributeUsage(attr.Usage)
 	txAttr.Data = data
 	return txAttr, nil

@@ -10,14 +10,16 @@ import (
 	"DNA/core/transaction"
 	"DNA/core/transaction/payload"
 	"DNA/crypto"
-	"DNA/net/httpjsonrpc"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	log4 "github.com/alecthomas/log4go"
+	//log4 "github.com/alecthomas/log4go"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,11 +35,21 @@ func init() {
 type Dna struct {
 	qid          uint64
 	rpcAddresses []string
+	client       *http.Client
 }
 
 func NewDna(rpcAddresses []string) *Dna {
 	return &Dna{
 		rpcAddresses: rpcAddresses,
+		client: &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost:   50,
+				DisableKeepAlives:     false, //启动keepalive
+				IdleConnTimeout:       time.Second * 300,
+				ResponseHeaderTimeout: time.Second * 300,
+			},
+			Timeout: time.Second * 300,
+		},
 	}
 }
 
@@ -194,6 +206,7 @@ func (this *Dna) SendTransaction(account *account.Account, tx *transaction.Trans
 	if err != nil {
 		return Uint256{}, fmt.Errorf("Serialize error:%s", err)
 	}
+
 	txData := hex.EncodeToString(buffer.Bytes())
 	data, err := this.sendRpcRequest(DNA_RPC_SENDTRANSACTION, []interface{}{txData})
 	if err != nil {
@@ -460,11 +473,11 @@ func (this *Dna) GetTransactionReference(tx *transaction.Transaction) (map[*tran
 
 }
 func (this *Dna) sendRpcRequest(method string, params []interface{}) ([]byte, error) {
-	data, err := httpjsonrpc.Call(this.getRpcAddress(), method, this.getQid(), params)
-	if method == DNA_RPC_SENDTRANSACTION {
-		log4.Info("Call:%s params:%+v", method, params)
-		log4.Info("Res:%s", data)
-	}
+	data, err := this.Call(this.getRpcAddress(), method, this.getQid(), params)
+	//if method == DNA_RPC_SENDTRANSACTION {
+	//	log4.Debug("Call:%s params:%+v", method, params)
+	//	log4.Debug("Res:%s", data)
+	//}
 	if err != nil {
 		return nil, fmt.Errorf("Call %s error:%s", method, err)
 	}
@@ -484,4 +497,31 @@ func (this *Dna) sendRpcRequest(method string, params []interface{}) ([]byte, er
 		return nil, err
 	}
 	return data, nil
+}
+
+// Call sends RPC request to server
+func (this *Dna) Call(address string, method string, id interface{}, params []interface{}) ([]byte, error) {
+	data, err := json.Marshal(map[string]interface{}{
+		"method": method,
+		"id":     id,
+		"params": params,
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Marshal JSON request: %v\n", err)
+		return nil, err
+	}
+	resp, err := this.client.Post(address, "application/json", strings.NewReader(string(data)))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "POST request: %v\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "GET response: %v\n", err)
+		return nil, err
+	}
+
+	return body, nil
 }

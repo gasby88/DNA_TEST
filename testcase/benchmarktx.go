@@ -12,15 +12,15 @@ import (
 	"time"
 )
 
-var BenchmarkClient = 100
+var BenchmarkClient = 50
 var BenchmarkTime = time.Second * 30
 
 func BenchmarkTransaction(ctx *testframework.TestFrameworkContext) bool {
-	assetId, asset, err := registAsset(ctx.Dna, 1000000, "BS01", 4, ctx.DnaClient.Admin, ctx.DnaClient.Admin)
-	if err != nil {
-		ctx.LogError("RegisterAsset error:%s", err)
-		return false
-	}
+	//assetId, asset, err := registAsset(ctx.Dna, 1000000, "BS01", 4, ctx.DnaClient.Admin, ctx.DnaClient.Admin)
+	//if err != nil {
+	//	ctx.LogError("RegisterAsset error:%s", err)
+	//	return false
+	//}
 
 	clientNum := BenchmarkClient
 	testClient := func(id int, exitCh chan interface{}) {
@@ -29,7 +29,8 @@ func BenchmarkTransaction(ctx *testframework.TestFrameworkContext) bool {
 			case <-exitCh:
 				return
 			default:
-				err := issueAsset(ctx.Dna, 0.1, assetId, asset, ctx.DnaClient.Admin, ctx.DnaClient.Account1)
+				//err := issueAsset(ctx.Dna, 0.1, assetId, asset, ctx.DnaClient.Admin, ctx.DnaClient.Account1)
+			err := record(ctx.Dna, ctx.DnaClient.Account1)
 				if err != nil {
 					ctx.LogError("Client:%v IssueAsset error:%s", id, err)
 				}
@@ -156,4 +157,16 @@ func issueAsset(dna *Dna,
 		return fmt.Errorf("SendTransaction error:%s", err)
 	}
 	return nil
+}
+
+func record(dna *Dna, account *account.Account) error {
+	recordType := "TestRecord"
+	recordData := make([]byte, 1024)
+	recordTx, err := dna.NewRecordTransaction(recordType, recordData)
+	if err != nil {
+		return err
+	}
+
+	_, err = dna.SendTransaction(account, recordTx)
+	return err
 }

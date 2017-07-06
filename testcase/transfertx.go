@@ -519,7 +519,8 @@ func TestTransferDoubleSpendTransaction(ctx *TestFrameworkContext) bool {
 		ctx.LogError("NewTransferAssetTransaction error:%s", err)
 		return false
 	}
-ctx.LogInfo("SendTransaction %+v", transferTx)
+
+	ctx.LogInfo("TestTransferDoubleSpendTransaction part 2")
 	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Account1, transferTx)
 	if err != nil {
 		ctx.LogError("SendTransaction error:%s", err)
@@ -539,8 +540,8 @@ ctx.LogInfo("SendTransaction %+v", transferTx)
 		Value:       txUnspent.Value,
 		ProgramHash: programHashTo,
 	}
-	txOutputs = []*transaction.TxOutput{dupOutput}
-	transferTx2, err := ctx.Dna.NewTransferAssetTransaction(dupInputs, txOutputs)
+	dupOutputs := []*transaction.TxOutput{dupOutput}
+	transferTx2, err := ctx.Dna.NewTransferAssetTransaction(dupInputs, dupOutputs)
 	if err != nil {
 		ctx.LogError("NewTransferAssetTransaction error:%s", err)
 		return false
@@ -553,13 +554,56 @@ ctx.LogInfo("SendTransaction %+v", transferTx)
 		return false
 	}
 
-	//
-	////Should failed
-	//_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Account1, transferTx2)
-	//if err == nil || err.Error() != dna.DnaRpcInternalError {
-	//	ctx.LogError("SendTransaction should failed")
-	//	return false
-	//}
+	ctx.LogInfo("Test mutil utxo double spend")
+	unspents, err = ctx.Dna.GetUnspendOutput(assetId, programHash)
+	if err != nil {
+		ctx.LogError("GetUnspendOutput error:%s", err)
+		return false
+	}
+	if unspents == nil {
+		ctx.LogError("GetUnspendOutput return nil")
+		return false
+	}
+	txInputs2 := make([]*transaction.UTXOTxInput, 0)
+	txOutputs2 := make([]*transaction.TxOutput, 0)
+	for _, unspent := range unspents {
+		if unspent.Value < 1 {
+			continue
+		}
+		input := &transaction.UTXOTxInput{
+			ReferTxID:          unspent.ReferTxID,
+			ReferTxOutputIndex: unspent.ReferTxOutputIndex,
+		}
+		txInputs2 = append(txInputs2, input)
+		txInputs2 = append(txInputs2, txInputs[0]) //duplicate
+		output := &transaction.TxOutput{
+			AssetID:     unspent.AssetID,
+			Value:       ctx.Dna.MakeAssetAmount(1),
+			ProgramHash: programHashTo,
+		}
+		output2 := &transaction.TxOutput{
+			AssetID:     unspent.AssetID,
+			Value:       unspent.Value - output.Value,
+			ProgramHash: unspent.ProgramHash,
+		}
+		txOutputs2 = append(txOutputs2, output)
+		txOutputs2 = append(txOutputs2, output2)
+		txOutputs2 = append(txOutputs2, dupOutput)
+		break
+	}
+
+	transferTx, err = ctx.Dna.NewTransferAssetTransaction(txInputs2, txOutputs2)
+	if err != nil {
+		ctx.LogError("NewTransferAssetTransaction error:%s", err)
+		return false
+	}
+
+	//Should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Account1, transferTx)
+	if err == nil || err.Error() != dna.DnaRpcInternalError {
+		ctx.LogError("SendTransaction should failed")
+		return false
+	}
 
 	return true
 }

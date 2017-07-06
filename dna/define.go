@@ -28,8 +28,7 @@ type BlockHead struct {
 
 type TxAttributeInfo struct {
 	Usage byte
-	Date  string
-	Size  uint32
+	Data  string
 }
 
 type UTXOTxInputInfo struct {

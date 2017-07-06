@@ -136,9 +136,6 @@ func testRegisterAssetTransaction(asset *Asset, assetAmount common.Fixed64, ctx 
 		return false
 	}
 
-	if !ctx.DnaAsset.RegAsset(txHash, asset) {
-		ctx.LogError("Asset name:%s has already register", asset.Name)
-		return false
-	}
+	ctx.DnaAsset.RegAsset(txHash, asset)
 	return true
 }

@@ -52,7 +52,7 @@ func TestRecordTransactionByTransfer(ctx *TestFrameworkContext) bool {
 		return false
 	}
 
-	attrType := transaction.Nonce
+	attrType := transaction.Description
 	attrs := &transaction.TxAttribute{
 		Usage: transaction.Description,
 		Data:  recordData,

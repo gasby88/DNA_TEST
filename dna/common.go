@@ -17,6 +17,28 @@ const (
 	DNA_RPC_GETCURRENTBLOCKHASH = "getbestblockhash"
 )
 
+const (
+	DNA_API_GETCONNCOUNT     = "/api/v1/node/connectioncount"
+	DNA_API_GETBLOCKBYHEIGHT = "/api/v1/block/details/height"
+	DNA_API_GETBLOCKBYHASH   = "/api/v1/block/details/hash"
+	DNA_API_GETBLOCKCOUNT    = "/api/v1/block/height"
+	DNA_API_GETTRANSACTION   = "/api/v1/transaction"
+	DNA_API_GETASSET         = "/api/v1/asset"
+	DNA_API_SENDTRANSACTION  = "/api/v1/transaction"
+
+	//Api_Getconnectioncount = "/api/v1/node/connectioncount"
+	//Api_Getblockbyheight   = "/api/v1/block/details/height/:height"
+	//Api_Getblockbyhash     = "/api/v1/block/details/hash/:hash"
+	//Api_Getblockheight     = "/api/v1/block/height"
+	//Api_Gettransaction     = "/api/v1/transaction/:hash"
+	//Api_Getasset           = "/api/v1/asset/:hash"
+	//Api_Restart            = "/api/v1/restart"
+	//Api_SendRawTransaction = "/api/v1/transaction"
+	//Api_OauthServerAddr    = "/api/v1/config/oauthserver/addr"
+	//Api_NoticeServerAddr   = "/api/v1/config/noticeserver/addr"
+	//Api_NoticeServerState  = "/api/v1/config/noticeserver/state"
+)
+
 type DNAJsonRpcRes struct {
 	Id      string          `json:"id"`
 	JsonRpc string          `json:"jsonrpc"`

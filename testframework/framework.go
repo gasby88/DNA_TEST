@@ -12,14 +12,24 @@ var TFramework = NewTestFramework()
 
 type TestCase func(ctx *TestFrameworkContext) bool
 
+type TestFrameworkOptions struct {
+	CycleTestMode     bool
+	CycleTestInterval int
+	BenchTestMode     bool
+	BenchThreadNum    int
+	BenchLastTime     int
+}
+
 type TestFramework struct {
-	startTime    time.Time
-	testCases    []TestCase
-	testCasesMap map[string]string
-	testCaseRes  map[string]bool
-	dna          *Dna
-	dnaClient    *DnaClient
-	dnaAsset     *DnaAsset
+	options        *TestFrameworkOptions
+	startTime      time.Time
+	testCases      []TestCase
+	benchTestCases []TestCase
+	testCasesMap   map[string]string
+	testCaseRes    map[string]bool
+	dna            *Dna
+	dnaClient      *DnaClient
+	dnaAsset       *DnaAsset
 }
 
 func NewTestFramework() *TestFramework {
@@ -36,10 +46,36 @@ func (this *TestFramework) RegTestCase(name string, testCase TestCase) {
 	this.testCasesMap[this.getTestCaseId(testCase)] = name
 }
 
-func (this *TestFramework) Start() {
+func (this *TestFramework) RegBenchTestCase(name string, testCase TestCase) {
+	this.benchTestCases = append(this.testCases, testCase)
+	this.testCasesMap[this.getTestCaseId(testCase)] = name
+}
+
+func (this *TestFramework) Start(ops *TestFrameworkOptions) {
+	this.options = ops
+	if this.options.BenchTestMode {
+		this.runTestList(this.benchTestCases)
+		return
+	}
+
+	if !this.options.CycleTestMode {
+		this.runTestList(this.testCases)
+		return
+	}
+
+	timer := time.NewTimer(time.Duration(this.options.CycleTestInterval) * time.Second)
+	for {
+		select {
+		case <-timer.C:
+			this.runTestList(this.testCases)
+			timer.Reset(time.Duration(this.options.CycleTestInterval) * time.Second)
+		}
+	}
+}
+
+func (this *TestFramework) runTestList(testCaseList []TestCase) {
 	this.onTestStart()
 	defer this.onTestFinish()
-
 	failNowCh := make(chan interface{}, 0)
 	for i, testCase := range this.testCases {
 		select {
@@ -53,7 +89,12 @@ func (this *TestFramework) Start() {
 }
 
 func (this *TestFramework) runTest(index int, failNowCh chan interface{}, testCase TestCase) {
-	ctx := NewTestFrameworkContext(this.dna, this.dnaClient, this.dnaAsset, failNowCh)
+	ctx := NewTestFrameworkContext(this.dna,
+		this.dnaClient,
+		this.dnaAsset,
+		failNowCh,
+		this.options.BenchThreadNum,
+		time.Duration(this.options.BenchLastTime)*time.Second)
 	this.onBeforeTestCaseStart(index, testCase)
 	ok := testCase(ctx)
 	this.onAfterTestCaseFinish(index, testCase, ok)
@@ -91,7 +132,7 @@ func (this *TestFramework) onTestFinish() {
 	}
 
 	skipList := make([]string, 0)
-	for _, testCase := range  this.testCases {
+	for _, testCase := range this.testCases {
 		_, ok := this.testCaseRes[this.getTestCaseId(testCase)]
 		if !ok {
 			skipList = append(skipList, this.getTestCaseName(testCase))
@@ -106,7 +147,7 @@ func (this *TestFramework) onTestFinish() {
 		len(this.testCases),
 		succCount,
 		failedCount,
-		len(this.testCases) - succCount - failedCount,
+		len(this.testCases)-succCount-failedCount,
 		time.Now().Sub(this.startTime).Seconds())
 	if succCount > 0 {
 		log4.Info("\t\t---------------------------------------------------------------")

@@ -14,7 +14,7 @@
     "KeyPath": "./sample-cert-key.pem",
     "CAPath": "./sample-ca.pem",
     "MultiCoreNum": 2,
-    "PrintLevel": 1,
+    "PrintLevel":4,
     "IsTLS": false,
     "BookKeeperCount": 7
   }

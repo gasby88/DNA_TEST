@@ -28,9 +28,9 @@ func init() {
 	TFramework.RegTestCase("TestTransferDuplicateUTXOTransaction", TestTransferDuplicateUTXOTransaction)
 
 	//Record test
-	//TFramework.RegTestCase("TestRecordTransactionByRecord", TestRecordTransactionByRecord)
-	//TFramework.RegTestCase("TestRecordTransactionByTransfer", TestRecordTransactionByTransfer)
+	TFramework.RegTestCase("TestRecordTransactionByRecord", TestRecordTransactionByRecord)
+	TFramework.RegTestCase("TestRecordTransactionByTransfer", TestRecordTransactionByTransfer)
 
 	//Benchmark
-	//TFramework.RegTestCase("BenchmarkTransaction", BenchmarkTransaction)
+	TFramework.RegBenchTestCase("BenchmarkTransaction", BenchmarkTransaction)
 }
