@@ -54,8 +54,7 @@ func (this *TestFramework) RegBenchTestCase(name string, testCase TestCase) {
 func (this *TestFramework) Start(ops *TestFrameworkOptions) {
 	this.options = ops
 	if this.options.BenchTestMode {
-		this.runTestList(this.benchTestCases)
-		return
+		go this.runTestList(this.benchTestCases)
 	}
 
 	if !this.options.CycleTestMode {
