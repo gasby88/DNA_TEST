@@ -7,6 +7,7 @@ import (
 	. "DNA_TEST/testframework"
 	"fmt"
 	"time"
+	"DNA/account"
 )
 
 func TestTransferTransaction(ctx *TestFrameworkContext) bool {
@@ -85,7 +86,7 @@ func TestTransferTransaction(ctx *TestFrameworkContext) bool {
 		return false
 	}
 
-	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 10)
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
 	if err != nil {
 		ctx.LogError("WaitForGenerateBlock error:%s", err)
 		ctx.FailNow()
@@ -108,7 +109,7 @@ func TestTransferTransaction(ctx *TestFrameworkContext) bool {
 	return ok
 }
 
-func TestTransferMutiTransaction(ctx *TestFrameworkContext) bool {
+func TestTransferMultiTransaction(ctx *TestFrameworkContext) bool {
 	empty := common.Uint256{}
 	assetName1 := "TS01"
 	assetId1 := ctx.DnaAsset.GetAssetId(assetName1)
@@ -219,7 +220,7 @@ func TestTransferMutiTransaction(ctx *TestFrameworkContext) bool {
 		return false
 	}
 
-	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 10)
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
 	if err != nil {
 		ctx.LogError("WaitForGenerateBlock error:%s", err)
 		ctx.FailNow()
@@ -235,6 +236,173 @@ func TestTransferMutiTransaction(ctx *TestFrameworkContext) bool {
 	txInputs2 := transferTx2.UTXOInputs
 	txOutputs2 := transferTx2.Outputs
 	ok, err := checkTransferTxResult(txInputs, txInputs2, txOutputs, txOutputs2)
+	if err != nil {
+		ctx.LogError("checkTransferTxResult error:%s", err)
+		return false
+	}
+	return ok
+}
+
+func TestMultiSigTransaction(ctx *TestFrameworkContext) bool {
+	assetName := "TS01"
+	assetId := ctx.DnaAsset.GetAssetId(assetName)
+	empty := common.Uint256{}
+	if assetId == empty {
+		ctx.LogError("AssetName:%s doesnot exist", assetName)
+		ctx.FailNow()
+		return false
+	}
+	programHash, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
+	if err != nil {
+		ctx.LogError("GetAccountProgramHash error:%s", err)
+		return false
+	}
+	unspents, err := ctx.Dna.GetUnspendOutput(assetId, programHash)
+	if err != nil {
+		ctx.LogError("GetUnspendOutput error:%s", err)
+		return false
+	}
+	if unspents == nil {
+		ctx.LogError("GetUnspendOutput return nil")
+		return false
+	}
+	m := 2
+	multiSingers := []*account.Account{ ctx.DnaClient.Account3, ctx.DnaClient.Account4, ctx.DnaClient.Account5}
+	programHashTo, err := ctx.Dna.GetAccountsProgramHash(ctx.DnaClient.Account2, m, multiSingers)
+	if err != nil {
+		ctx.LogError("GetAccountProgramHash error:%s", err)
+		return false
+	}
+
+	txInputs := make([]*transaction.UTXOTxInput, 0, 1)
+	txOutputs := make([]*transaction.TxOutput, 0, 1)
+	for _, unspent := range unspents {
+		if unspent.Value < 1 {
+			continue
+		}
+		input := &transaction.UTXOTxInput{
+			ReferTxID:          unspent.ReferTxID,
+			ReferTxOutputIndex: unspent.ReferTxOutputIndex,
+		}
+		txInputs = append(txInputs, input)
+		output := &transaction.TxOutput{
+			AssetID:     unspent.AssetID,
+			Value:       ctx.Dna.MakeAssetAmount(1),
+			ProgramHash: programHashTo,
+		}
+		//dibs output
+		output2 := &transaction.TxOutput{
+			AssetID:     output.AssetID,
+			Value:       unspent.Value - output.Value,
+			ProgramHash: unspent.ProgramHash,
+		}
+		txOutputs = append(txOutputs, output)
+		txOutputs = append(txOutputs, output2)
+		break
+	}
+	if len(txInputs) == 0 {
+		ctx.LogError("TxInput is nil")
+		return false
+	}
+
+	transferTx, err := ctx.Dna.NewTransferAssetTransaction(txInputs, txOutputs)
+	if err != nil {
+		ctx.LogError("NewTransferAssetTransaction error:%s", err)
+		return false
+	}
+
+	txHash, err := ctx.Dna.SendTransaction(ctx.DnaClient.Account1, transferTx)
+	if err != nil {
+		ctx.LogError("SendTransaction error:%s", err)
+		return false
+	}
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
+	if err != nil {
+		ctx.LogError("WaitForGenerateBlock error:%s", err)
+		ctx.FailNow()
+		return false
+	}
+
+	transferTx2, err := ctx.Dna.GetTransaction(txHash)
+	if err != nil {
+		ctx.LogError("GetTransaction TxHash:%x error:%s", txHash, err)
+		return false
+	}
+
+	txInputs2 := transferTx2.UTXOInputs
+	txOutputs2 := transferTx2.Outputs
+	ok, err := checkTransferTxResult(txInputs, txInputs2, txOutputs, txOutputs2)
+	if err != nil {
+		ctx.LogError("checkTransferTxResult error:%s", err)
+		return false
+	}
+	if !ok {
+		ctx.LogError("checkTransferTxResult failuer")
+		return false
+	}
+
+	programHashTo, err = ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
+	if err != nil {
+		ctx.LogError("GetAccountProgramHash error:%s", err)
+		return false
+	}
+	txInputs3 := make([]*transaction.UTXOTxInput, 0, 1)
+	txOutputs3 := make([]*transaction.TxOutput, 0, 1)
+	txInput := &transaction.UTXOTxInput{
+		ReferTxID:          txHash,
+		ReferTxOutputIndex: 0,
+	}
+	txInputs3 = append(txInputs3, txInput)
+	txOutput := &transaction.TxOutput{
+		AssetID:     assetId,
+		Value:       ctx.Dna.MakeAssetAmount(1),
+		ProgramHash: programHashTo,
+	}
+	txOutputs3 = append(txOutputs3, txOutput)
+	transferTx3, err := ctx.Dna.NewTransferAssetTransaction(txInputs3, txOutputs3)
+	if err != nil {
+		ctx.LogError("NewTransferAssetTransaction error:%s", err)
+		return false
+	}
+	//should failed
+	_, err = ctx.Dna.SendTransaction(ctx.DnaClient.Account2, transferTx3)
+	if err == nil {
+		ctx.LogError("SendTransaction should failed. Sig error")
+		return false
+	}
+	//should failed
+	_, err = ctx.Dna.SendMultiSigTransction(ctx.DnaClient.Account2, m, []*account.Account{ctx.DnaClient.Account3}, transferTx3)
+	if err == nil {
+		ctx.LogError("SendMutiSigTransction should failed. Sig not enough")
+		return false
+	}
+	//should failed
+	_, err = ctx.Dna.SendMultiSigTransction(ctx.DnaClient.Account2, m, []*account.Account{ctx.DnaClient.Account1, ctx.DnaClient.Account3}, transferTx3)
+	if err == nil {
+		ctx.LogError("SendMutiSigTransction should failed. Sig not enough")
+		return false
+	}
+	//should success
+	txHash2, err := ctx.Dna.SendMultiSigTransction(ctx.DnaClient.Account2, m, multiSingers, transferTx3)
+	if err != nil {
+		ctx.LogError("SendMutiSigTransction error:%s", err)
+		return false
+	}
+
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
+	if err != nil {
+		ctx.LogError("WaitForGenerateBlock error:%s", err)
+		ctx.FailNow()
+		return false
+	}
+
+	transferTx4, err := ctx.Dna.GetTransaction(txHash2)
+	if err != nil {
+		ctx.LogError("GetMultiSigTransaction TxHash:%x error:%s", txHash2, err)
+		return false
+	}
+
+	ok, err = checkTransferTxResult(transferTx3.UTXOInputs, transferTx4.UTXOInputs, transferTx3.Outputs, transferTx4.Outputs)
 	if err != nil {
 		ctx.LogError("checkTransferTxResult error:%s", err)
 		return false
@@ -528,7 +696,7 @@ func TestTransferDoubleSpendTransaction(ctx *TestFrameworkContext) bool {
 	}
 
 	//ctx.LogInfo("WaitForGenerateBlock")
-	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 10)
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
 	if err != nil {
 		ctx.LogError("WaitForGenerateBlock error:%s", err)
 		return false

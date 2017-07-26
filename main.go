@@ -22,7 +22,7 @@ var (
 
 func init() {
 	flag.StringVar(&DNAJsonRpcAddress, "rpc", "http://localhost:20336", "The address of dna jsonrpc")
-	flag.BoolVar(&CycleTestMode, "c", true, "Is cycle test mode")
+	flag.BoolVar(&CycleTestMode, "c", false, "Is cycle test mode")
 	flag.IntVar(&CycleTestInterval, "ci", 10, "Interval between test in cycle mode")
 	flag.BoolVar(&BenchTestMode, "b", false, "Is benchmark test mode")
 	flag.IntVar(&BenchThreadNum, "bn", 50, "Thread num in benchmark mode")

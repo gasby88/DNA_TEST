@@ -22,7 +22,7 @@ func TestRecordTransactionByRecord(ctx *TestFrameworkContext) bool {
 		return false
 	}
 
-	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 10)
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
 	if err != nil {
 		ctx.LogError("WaitForGenerateBlock error:%s", err)
 		return false
@@ -66,7 +66,7 @@ func TestRecordTransactionByTransfer(ctx *TestFrameworkContext) bool {
 		return false
 	}
 	ctx.LogInfo("TxHash:%x", txHash)
-	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 10)
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
 	if err != nil {
 		ctx.LogError("WaitForGenerateBlock error:%s", err)
 		return false

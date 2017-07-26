@@ -19,7 +19,8 @@ func init() {
 
 	//Transfer Asset test
 	TFramework.RegTestCase("TestTransferTransaction", TestTransferTransaction)
-	TFramework.RegTestCase("TestTransferMutiTransaction", TestTransferMutiTransaction)
+	TFramework.RegTestCase("TestTransferMultiTransaction", TestTransferMultiTransaction)
+	TFramework.RegTestCase("TestMultiSigTransaction", TestMultiSigTransaction)
 	TFramework.RegTestCase("TestTransferOverAmountTransaction", TestTransferOverAmountTransaction)
 	TFramework.RegTestCase("TestTransferNegAmountTransaction", TestTransferNegAmountTransaction)
 	TFramework.RegTestCase("TestTransferPreciseTransaction", TestTransferPreciseTransaction)

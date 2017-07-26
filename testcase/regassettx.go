@@ -116,7 +116,7 @@ func testRegisterAssetTransaction(asset *Asset, assetAmount common.Fixed64, ctx 
 		return false
 	}
 
-	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 10)
+	_, err = ctx.Dna.WaitForGenerateBlock(time.Second * 30)
 	if err != nil {
 		ctx.LogError("WaitForGenerateBlock error:%s", err)
 		ctx.FailNow()

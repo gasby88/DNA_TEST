@@ -245,6 +245,68 @@ func (this *Dna) SignTransaction(signer *account.Account, tx *transaction.Transa
 	return nil
 }
 
+
+func (this *Dna) SendMultiSigTransction(owner *account.Account, m int, singers []*account.Account, tx *transaction.Transaction)(Uint256, error){
+	err := this.MultiSignTransaction(owner, m, singers, tx)
+	if err != nil {
+		return Uint256{}, fmt.Errorf("MultiSignTransaction error:%s", err)
+	}
+
+	var buffer bytes.Buffer
+	err = tx.Serialize(&buffer)
+	if err != nil {
+		return Uint256{}, fmt.Errorf("Serialize error:%s", err)
+	}
+
+	txData := hex.EncodeToString(buffer.Bytes())
+	data, err := this.sendRpcRequest(DNA_RPC_SENDTRANSACTION, []interface{}{txData})
+	if err != nil {
+		return Uint256{}, err
+	}
+
+	hash, err := ParseUint256FromString(string(data))
+	if err != nil {
+		return Uint256{}, fmt.Errorf("ParseUint256FromString Hash:%s error:%s", data, err)
+	}
+	return hash, nil
+}
+
+func (this *Dna) MultiSignTransaction(owner *account.Account, m int, signers []*account.Account, tx *transaction.Transaction) error {
+	if len(signers) == 0 {
+		return fmt.Errorf("not enough signer")
+	}
+	pubKeys := make([]*crypto.PubKey, 0, len(signers))
+	signatures := make([][]byte, 0, len(signers))
+	for _, signer := range signers {
+		signature, err := signature.SignBySigner(tx, signer)
+		if err != nil {
+			return fmt.Errorf("SignBySigner error:%s", err)
+		}
+		signatures = append(signatures, signature)
+		pubKeys = append(pubKeys, signer.PubKey())
+	}
+	transactionContract, err := contract.CreateMultiSigContract(owner.ProgramHash, m, pubKeys)
+	if err != nil {
+		return fmt.Errorf("CreateMultiSigContract error:%s", err)
+	}
+	programHashes, err := this.GetTransactionProgramHashes(tx)
+	if err != nil {
+		return fmt.Errorf("GetTransactionProgramHashes error:%s", err)
+	}
+	ctx, err := this.NewContractContext(tx, programHashes)
+	if err != nil {
+		return fmt.Errorf("NewContractContext error:%s", err)
+	}
+	for _, signature := range signatures{
+		err = ctx.AddContract(transactionContract, owner.PubKey(), signature)
+		if err != nil {
+			return fmt.Errorf("AddContract error:%s", err)
+		}
+	}
+	tx.SetPrograms(ctx.GetPrograms())
+	return nil
+}
+
 func (this *Dna) GetTransactionProgramHashes(tx *transaction.Transaction) ([]Uint160, error) {
 	hashs := []Uint160{}
 	uniqHashes := []Uint160{}
@@ -442,6 +504,22 @@ func (this *Dna) GetAccountProgramHash(account *account.Account) (Uint160, error
 	}
 	return ctr.ProgramHash, nil
 }
+
+func (this *Dna)GetAccountsProgramHash(owner *account.Account, m int,  accounts []*account.Account)(Uint160, error){
+	if m > len(accounts) {
+		return Uint160{}, fmt.Errorf("m:%v should not larger then count of accounts:%v", m, len(accounts))
+	}
+	pubKeys := make([]*crypto.PubKey, 0, len(accounts))
+	for _, account := range accounts{
+		pubKeys = append(pubKeys, account.PubKey())
+	}
+	ctr, err := contract.CreateMultiSigContract(owner.ProgramHash, m, pubKeys)
+	if err != nil {
+		return Uint160{}, fmt.Errorf("CreateMultiSigContract error:%s", err)
+	}
+	return ctr.ProgramHash, nil
+}
+
 
 func (this *Dna) getQid() string {
 	return fmt.Sprintf("%d", atomic.AddUint64(&this.qid, 1))
