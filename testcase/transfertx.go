@@ -151,7 +151,7 @@ func TestTransferMultiTransaction(ctx *TestFrameworkContext) bool {
 		ctx.LogError("GetUnspendOutput error:%s", err)
 		return false
 	}
-	if unspents1 == nil {
+	if unspents2 == nil {
 		ctx.LogError("GetUnspendOutput return nil")
 		return false
 	}
@@ -197,7 +197,7 @@ func TestTransferMultiTransaction(ctx *TestFrameworkContext) bool {
 		output2 := &transaction.TxOutput{
 			AssetID:     unspent.AssetID,
 			Value:       unspent.Value - output.Value,
-			ProgramHash: unspent.ProgramHash,
+			ProgramHash: programHash2,
 		}
 		txOutputs = append(txOutputs, output)
 		txOutputs = append(txOutputs, output2)
@@ -214,7 +214,12 @@ func TestTransferMultiTransaction(ctx *TestFrameworkContext) bool {
 		return false
 	}
 
-	txHash, err := ctx.Dna.SendTransaction(ctx.DnaClient.Account1, transferTx)
+	err = ctx.Dna.SignTransaction(transferTx, []*account.Account{ctx.DnaClient.Account1,ctx.DnaClient.Account2})
+	if err != nil {
+		ctx.LogError("SignTransaction error:%s", err)
+		return  false
+	}
+	txHash, err := ctx.Dna.DoSendTransaction(transferTx)
 	if err != nil {
 		ctx.LogError("SendTransaction error:%s", err)
 		return false

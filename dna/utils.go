@@ -3,8 +3,8 @@ package dna
 import (
 	"DNA/common"
 	"DNA/core/asset"
-	"DNA/core/code"
-	"DNA/core/contract"
+	//"DNA/core/code"
+	//"DNA/core/contract"
 	"DNA/core/contract/program"
 	"DNA/core/ledger"
 	"DNA/core/transaction"
@@ -138,18 +138,42 @@ func ParseToPayload(payloadType transaction.TransactionType, data json.RawMessag
 			return nil, fmt.Errorf("ParsePayloadRecord error:%s", err)
 		}
 		payload = record
-	case transaction.DeployCode:
-		p := &PayloadDeployCodeInfo{}
-		err := json.Unmarshal(data, p)
-		if err != nil {
-			return nil, fmt.Errorf("json.Unmarshal payload DeployCodeInfo:%s error:%s", data, err)
-		}
-
-		deplyCode, err := ParseDeployCodeInfo(p)
-		if err != nil {
-			return nil, fmt.Errorf("ParsePayloadDeployCodeInfo error:%s", err)
-		}
-		payload = deplyCode
+	//case transaction.DeployCode:
+	//	p := &PayloadDeployCodeInfo{}
+	//	err := json.Unmarshal(data, p)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("json.Unmarshal payload DeployCodeInfo:%s error:%s", data, err)
+	//	}
+	//
+	//	deplyCode, err := ParseDeployCodeInfo(p)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("ParsePayloadDeployCodeInfo error:%s", err)
+	//	}
+	//	payload = deplyCode
+	//case transaction.IdentityUpdate:
+	//	p := &PayloadIdentityUpdateInfo{}
+	//	err := json.Unmarshal(data, p)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("json.Unmarshal payload PayloadIdentityUpdateInfo:%s error:%s", data, err)
+	//	}
+	//
+	//	indetity, err := ParseIdentityUpdateInfo(p)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("json.Unmarshal payload ParseIdentityUpdateInfo:%s error:%s", data, err)
+	//	}
+	//	payload = indetity
+	//case transaction.IdentityClaimUpdate:
+	//	p := &PayloadIdentityClaimUpdateInfo{}
+	//	err := json.Unmarshal(data, p)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("json.Unmarshal payload PayloadIdentityClaimUpdateInfo:%s error:%s", data, err)
+	//	}
+	//
+	//	indetityClaim, err := ParseIdentityClaimUpdateInfo(p)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("json.Unmarshal payload ParseIdentityClaimUpdateInfo:%s error:%s", data, err)
+	//	}
+	//	payload = indetityClaim
 	}
 
 	return payload, nil
@@ -265,36 +289,100 @@ func ParseRecord(p *PayloadRecord) (*txpl.Record, error) {
 	record.RecordData = data
 	return record, nil
 }
-
-func ParseDeployCodeInfo(p *PayloadDeployCodeInfo) (*txpl.DeployCode, error) {
-	c, err := hex.DecodeString(p.Code.Code)
-	if err != nil {
-		return nil, fmt.Errorf("hex.DecodeString Code:%s error:%s", p.Code.Code, err)
-	}
-	paramByte, err := hex.DecodeString(p.Code.ParameterTypes)
-	if err != nil {
-		return nil, fmt.Errorf("hex.DecodeString ParameterTypes:%s error:%s", p.Code.ParameterTypes, err)
-	}
-	param := contract.ByteToContractParameterType(paramByte)
-	retByte, err := hex.DecodeString(p.Code.ReturnTypes)
-	if err != nil {
-		return nil, fmt.Errorf("hex.DecodeString ReturnTypes:%s error:%s", p.Code.ReturnTypes, err)
-	}
-	ret := contract.ByteToContractParameterType(retByte)
-
-	deplyCode := &txpl.DeployCode{}
-	deplyCode.Code = &code.FunctionCode{
-		Code:           c,
-		ParameterTypes: param,
-		ReturnTypes:    ret,
-	}
-	deplyCode.Name = p.Name
-	deplyCode.Author = p.Author
-	deplyCode.CodeVersion = p.CodeVersion
-	deplyCode.Description = p.Description
-	deplyCode.Email = p.Email
-	return deplyCode, nil
-}
+//
+//func ParseIdentityUpdateInfo(p *PayloadIdentityUpdateInfo) (*txpl.IdentityUpdate, error) {
+//	identity := &txpl.IdentityUpdate{}
+//	ontId, err := hex.DecodeString(p.OntId)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString OntId:%s error:%s", p.OntId, err)
+//	}
+//	ddo, err := hex.DecodeString(p.DDO)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString DDO:%s error:%s", p.DDO, err)
+//	}
+//	x := &big.Int{}
+//	_, err = fmt.Sscan(p.Updater.X, x)
+//	if err != nil {
+//		return nil, fmt.Errorf("fmt.Sscan Updater.X:%s error:%s", p.Updater.X, err)
+//	}
+//	y := &big.Int{}
+//	_, err = fmt.Sscan(p.Updater.Y, y)
+//	if err != nil {
+//		return nil, fmt.Errorf("fmt.Sscan Updater.Y:%s error:%s", p.Updater.Y, err)
+//	}
+//
+//	updater := &crypto.PubKey{
+//		X: x,
+//		Y: y,
+//	}
+//
+//	identity.Updater = updater
+//	identity.OntId = ontId
+//	identity.DDO = ddo
+//	return identity, nil
+//}
+//
+//func ParseIdentityClaimUpdateInfo(p *PayloadIdentityClaimUpdateInfo) (*txpl.IdentityClaimUpdate, error) {
+//	identityClaim := &txpl.IdentityClaimUpdate{}
+//	ontId, err := hex.DecodeString(p.OntId)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString OntId:%s error:%s", p.OntId, err)
+//	}
+//	claim, err := hex.DecodeString(p.Claim)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString Claim:%s error:%s", p.Claim, err)
+//	}
+//	x := &big.Int{}
+//	_, err = fmt.Sscan(p.Updater.X, x)
+//	if err != nil {
+//		return nil, fmt.Errorf("fmt.Sscan Updater.X:%s error:%s", p.Updater.X, err)
+//	}
+//	y := &big.Int{}
+//	_, err = fmt.Sscan(p.Updater.Y, y)
+//	if err != nil {
+//		return nil, fmt.Errorf("fmt.Sscan Updater.Y:%s error:%s", p.Updater.Y, err)
+//	}
+//
+//	updater := &crypto.PubKey{
+//		X: x,
+//		Y: y,
+//	}
+//
+//	identityClaim.Updater = updater
+//	identityClaim.OntId = ontId
+//	identityClaim.Claim = claim
+//	return identityClaim, nil
+//}
+//
+//func ParseDeployCodeInfo(p *PayloadDeployCodeInfo) (*txpl.DeployCode, error) {
+//	c, err := hex.DecodeString(p.Code.Code)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString Code:%s error:%s", p.Code.Code, err)
+//	}
+//	paramByte, err := hex.DecodeString(p.Code.ParameterTypes)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString ParameterTypes:%s error:%s", p.Code.ParameterTypes, err)
+//	}
+//	param := contract.ByteToContractParameterType(paramByte)
+//	retByte, err := hex.DecodeString(p.Code.ReturnTypes)
+//	if err != nil {
+//		return nil, fmt.Errorf("hex.DecodeString ReturnTypes:%s error:%s", p.Code.ReturnTypes, err)
+//	}
+//	ret := contract.ByteToContractParameterType(retByte)
+//
+//	deplyCode := &txpl.DeployCode{}
+//	deplyCode.Code = &code.FunctionCode{
+//		Code:           c,
+//		ParameterTypes: param,
+//		ReturnTypes:    ret,
+//	}
+//	deplyCode.Name = p.Name
+//	deplyCode.Author = p.Author
+//	deplyCode.CodeVersion = p.CodeVersion
+//	deplyCode.Description = p.Description
+//	deplyCode.Email = p.Email
+//	return deplyCode, nil
+//}
 
 func ParseBlock(blockInfo *BlockInfo) (*ledger.Block, error) {
 	txs := make([]*transaction.Transaction, len(blockInfo.Transactions))

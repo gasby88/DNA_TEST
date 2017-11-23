@@ -106,3 +106,19 @@ type UnspendUTXO struct {
 	Value              Fixed64
 	ProgramHash        Uint160
 }
+
+type UpdaterInfo struct {
+	X, Y string
+}
+
+type PayloadIdentityUpdateInfo struct {
+	OntId   string
+	DDO     string
+	Updater UpdaterInfo
+}
+
+type PayloadIdentityClaimUpdateInfo struct {
+	OntId   string
+	Claim   string
+	Updater UpdaterInfo
+}

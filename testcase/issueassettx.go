@@ -89,7 +89,7 @@ func TestIssueAssetMutiTransaction(ctx *testframework.TestFrameworkContext) bool
 		ctx.LogError("GetProgramHash error:%s", err)
 		return false
 	}
-	programHash2, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account1)
+	programHash2, err := ctx.Dna.GetAccountProgramHash(ctx.DnaClient.Account2)
 	if err != nil {
 		ctx.LogError("GetProgramHash error:%s", err)
 		return false

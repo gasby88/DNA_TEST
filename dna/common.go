@@ -15,6 +15,8 @@ const (
 	DNA_RPC_GETBLOCKHASH        = "getblockhash"
 	DNA_RPC_GETUNSPENDOUTPUT    = "getunspendoutput"
 	DNA_RPC_GETCURRENTBLOCKHASH = "getbestblockhash"
+	DNA_RPC_GETIDENTITY         = "getidentity"
+	DNA_RPC_GETIDENTITYCLAIM    = "getidentityclaim"
 )
 
 const (
@@ -37,6 +39,48 @@ const (
 	//Api_OauthServerAddr    = "/api/v1/config/oauthserver/addr"
 	//Api_NoticeServerAddr   = "/api/v1/config/noticeserver/addr"
 	//Api_NoticeServerState  = "/api/v1/config/noticeserver/state"
+
+	DNA_SENDTRANSACTION     = "sendrawtransaction"
+	DNA_HEARTBEAT           = "heartbeat"
+	DNA_SMARTCONTRACTINVOKE = "InvokeTransaction"
+)
+
+const (
+	DNA_ERR_OK                     = 0
+	DNA_ERR_SESSION_EXPIRED        = 41001
+	DNA_ERR_SERVICE_CEILING        = 41002
+	DNA_ERR_ILLEGAL_DATAFORMAT     = 41003
+	DNA_ERR_OAUTH_TIMEOUT          = 41004
+	DNA_ERR_INVALID_METHOD         = 42001
+	DNA_ERR_INVALID_PARAMS         = 42002
+	DNA_ERR_INVALID_TOKEN          = 42003
+	DNA_ERR_INVALID_TRANSACTION    = 43001
+	DNA_ERR_INVALID_ASSET          = 43002
+	DNA_ERR_INVALID_BLOCK          = 43003
+	DNA_ERR_UNKNOWN_TRANSACTION    = 44001
+	DNA_ERR_UNKNOWN_ASSET          = 44002
+	DNA_ERR_UNKNOWN_BLOCK          = 44003
+	DNA_ERR_INVALID_VERSION        = 45001
+	DNA_ERR_INTERNAL_ERROR         = 45002
+	DNA_ERR_OAUTH_INVALID_APPID    = 46001
+	DNA_ERR_OAUTH_INVALID_CHECKVAL = 46002
+	DNA_ERR_SMARTCODE_ERROR        = 47001
+
+	ErrNoCode               = -2
+	ErrNoError              = 0
+	ErrUnknown              = -1
+	ErrDuplicatedTx         = 1
+	ErrDuplicateInput       = 45003
+	ErrAssetPrecision       = 45004
+	ErrTransactionBalance   = 45005
+	ErrAttributeProgram     = 45006
+	ErrTransactionContracts = 45007
+	ErrTransactionPayload   = 45008
+	ErrDoubleSpend          = 45009
+	ErrTxHashDuplicate      = 45010
+	ErrStateUpdaterVaild    = 45011
+	ErrSummaryAsset         = 45012
+	ErrXmitFail             = 45013
 )
 
 type DNAJsonRpcRes struct {
@@ -55,6 +99,8 @@ const (
 	DnaRpcNil                = "null"
 	DnaRpcUnsupported        = "Unsupported"
 	DnaRpcInternalError      = "internal error"
+	DnaRpcIOError            = "internal IO error"
+	DnaRpcAPIError           = "internal API error"
 )
 
 var DNARpcError map[string]string = map[string]string{
@@ -67,6 +113,8 @@ var DNARpcError map[string]string = map[string]string{
 	DnaRpcUnsupported:        "",
 	DnaRpcInternalError:      "",
 	DnaRpcNil:                "",
+	DnaRpcIOError:            "",
+	DnaRpcAPIError:           "",
 }
 
 func (this *DNAJsonRpcRes) HandleResult() ([]byte, error) {
